@@ -1,0 +1,62 @@
+$sub-color: gray;
+$main-color: black;
+
+// 今回は引数なしのmixin。引数を取るように定義することもできる
+// 以下のスタイルは今いる場所から上に移動させて、色を変えている
+@mixin shrinkLable {
+    top: -14px;
+    font-size: 12px;
+    color: $main-color;
+}
+
+.group {
+    position: relative;
+    margin: 45px 0px;
+
+    .form-input {
+        background: none;
+        background-color: white;
+        // 入力される文字の色
+        color: $sub-color;
+        font-size: 18px;
+        padding: 10px 10px 10px 5px;
+        display: block;
+        width: 100%;
+        border: none;
+        border-radius: 0;
+        border-bottom: 1px solid black;
+        margin: 25px 0px;
+
+        &:focus {
+            outline: none;
+        }
+
+        // .form-inputの兄弟要素で、.form-input-labelクラスを持つ要素に対するスタイル指定
+        // CSSセレクタの一般的な記法
+        &:focus ~ .form-input-label {
+            @include shrinkLable();
+        }
+
+    }
+
+    input[type='password'] {
+        // passwordの●は少し間を開けた方が見やすい
+        letter-spacing: 0.3rem;
+    }
+
+    .form-input-label {
+        color: $sub-color;
+        font-size: 16px;
+        font-weight: normal;
+        position: absolute;
+        left: 5px;
+        top: 10px;
+        // pointerイベントが発生しないようにする
+        pointer-events: none;
+
+        &.shrink {
+            @include shrinkLable();
+        }
+    }
+}
+
