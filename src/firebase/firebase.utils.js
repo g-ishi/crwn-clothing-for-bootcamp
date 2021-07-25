@@ -25,6 +25,41 @@ firebase.initializeApp(config);
 export const auth = firebase.auth();
 export const firestore = firebase.firestore();
 
+// ユーザがusersコレクションに存在するかどうかを確認し、存在しない場合はusersコレクションに引数のユーザドキュメントを追加する
+export const createUserProfileDocument = async (userAuth, additionalData) => {
+    // ユーザがログインしていない場合には処理を終了する
+    if (!userAuth) return;
+
+    // ログインユーザのドキュメントを取得する(その場所のリファレンス)
+    const userRef = firestore.doc(`/users/${userAuth.uid}`);
+    // 実際のデータを取得する
+    const snapShot = await userRef.get();
+
+    // ログインユーザがusersコレクションに存在しない場合は、データを登録する
+    if (!snapShot.exists) {
+        const { displayName, email } = userAuth;
+        const createAt = new Date();
+        try {
+            // キー名に変数名、バリューに変数の値を使うオブジェクトの場合は以下のように省略記法が使える。
+            await userRef.set({
+                displayName,
+                email,
+                createAt,
+                ...additionalData,
+            })
+        } catch (error) {
+            console.log("error creating user", error.message);
+        }
+
+    }
+
+    return userRef;
+}
+
+
+
+
+
 // 認証プロバイダの情報を設定する(今回はgoogleのを使っているが、他にもtwitterやfacebookなどのも使える)
 const provider = new firebase.auth.GoogleAuthProvider();
 provider.setCustomParameters({ prompt: 'select_account' });

@@ -8,7 +8,7 @@ import ShopPage from './pages/shop/shop.component';
 import Header from './components/header/header.component';
 import SignInAndSignUpPage from './pages/sign-in-and-sign-up/sign-in-and-sign-up.component';
 
-import { auth } from './firebase/firebase.utils';
+import { auth, createUserProfileDocument } from './firebase/firebase.utils';
 
 class App extends React.Component {
   constructor() {
@@ -26,9 +26,29 @@ class App extends React.Component {
     // この関数はFirebaseとのコネクションを貼って通信している
     // ユーザの状態(ログイン/ログアウト/ユーザ情報の変更)が起こった場合には、Firebase側からメッセージが送られてくる
     // この関数はFirebaseとのコネクションを貼って通信しているので、必要なくなったタイミングでクローズしてあげる必要がある(そうしないとメモリリークが発生する)
-    this.unsubscribeFromAuth = auth.onAuthStateChanged(user => {
-      this.setState({ currentUser: user });
-      console.log(user);
+    this.unsubscribeFromAuth = auth.onAuthStateChanged(async userAuth => {
+      const userRef = createUserProfileDocument(userAuth);
+
+      // FireStoreに登録、もしくは取得したデータをstateにもセットしておく
+      if (userRef) {
+
+        // FireStoreからデータを取得する
+        (await userRef).onSnapshot(snapShot => {
+          this.setState({
+            currentUser: {
+              id: snapShot.id,
+              ...snapShot.data(),
+            }
+          }, () => console.log(this.state))
+        })
+
+      }
+      else {
+        // ログアウトしている場合はデータをnullに更新する
+        this.setState({
+          currentUser: null,
+        });
+      }
     })
   }
 
@@ -43,7 +63,7 @@ class App extends React.Component {
     return (
       <div>
         {/* こうすることでHeaderは必ず毎回レンダリングされる */}
-        <Header currentUser={this.state.currentUser}/>
+        <Header currentUser={this.state.currentUser} />
         <Switch>
           <Route exact path='/' component={HomePage} />
           <Route exact path='/shop' component={ShopPage} />
