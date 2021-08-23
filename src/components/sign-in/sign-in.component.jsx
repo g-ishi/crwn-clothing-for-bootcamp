@@ -3,7 +3,7 @@ import React from 'react';
 import FormInput from '../form-input/form-input.component';
 import CustomButton from '../custom-button/custom-button.component';
 
-import { signInWithGoogle } from '../../firebase/firebase.utils';
+import { auth, signInWithGoogle } from '../../firebase/firebase.utils';
 
 import './sign-in.style.scss'
 
@@ -17,15 +17,24 @@ class SignIn extends React.Component {
         }
     }
 
-    handleSubmit = (event) => {
+    handleSubmit = async (event) => {
         // デフォルトのsubmitする動作を発生させないようにする
         event.preventDefault();
 
-        this.setState({
-            email: '',
-            password: '',
-        })
+        const { email, password } = this.state;
 
+        // ログイン処理を行う
+        try {
+            await auth.signInWithEmailAndPassword(email, password);
+
+            this.setState({
+                email: '',
+                password: '',
+            })
+
+        } catch (error) {
+            console.log(error);
+        }
     }
 
     handleChange = (event) => {
@@ -64,7 +73,8 @@ class SignIn extends React.Component {
                     <div className="buttons">
                         <CustomButton type="submit">Sign In</CustomButton>
                         {/* コンポーネントに渡す引数で値を指定しなかった場合は、デフォルトでTrueとして渡される */}
-                        <CustomButton onClick={signInWithGoogle} isGoogleSignIn>sign in with google</CustomButton>
+                        {/* formタグ内のボタン要素はデフォルトでtype="submit"として扱われるが、このボタンはsubmitボタンにしたくないので、明示的にtype="button"を設定しておく */}
+                        <CustomButton type="button" onClick={signInWithGoogle} isGoogleSignIn>sign in with google</CustomButton>
                     </div>
                 </form>
             </div>

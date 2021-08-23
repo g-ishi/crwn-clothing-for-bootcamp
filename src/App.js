@@ -26,14 +26,15 @@ class App extends React.Component {
     // この関数はFirebaseとのコネクションを貼って通信している
     // ユーザの状態(ログイン/ログアウト/ユーザ情報の変更)が起こった場合には、Firebase側からメッセージが送られてくる
     // この関数はFirebaseとのコネクションを貼って通信しているので、必要なくなったタイミングでクローズしてあげる必要がある(そうしないとメモリリークが発生する)
+    // onAuthStateChangedメソッドは、確立したコネクションをクローズする関数を返り値として返却する★
     this.unsubscribeFromAuth = auth.onAuthStateChanged(async userAuth => {
-      const userRef = createUserProfileDocument(userAuth);
+      const userRef = await createUserProfileDocument(userAuth);
 
       // FireStoreに登録、もしくは取得したデータをstateにもセットしておく
       if (userRef) {
 
         // FireStoreからデータを取得する
-        (await userRef).onSnapshot(snapShot => {
+        userRef.onSnapshot(snapShot => {
           this.setState({
             currentUser: {
               id: snapShot.id,
